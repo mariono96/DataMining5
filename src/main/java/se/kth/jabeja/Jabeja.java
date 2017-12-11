@@ -12,6 +12,7 @@ import java.util.*;
 
 import java.lang.Math.*;
 
+
 public class Jabeja {
   final static Logger logger = Logger.getLogger(Jabeja.class);
   private final Config config;
@@ -21,6 +22,7 @@ public class Jabeja {
   private int round;
   private float T;
   private boolean resultFileCreated = false;
+  private Random rnd;
 
   //-------------------------------------------------------------------
   public Jabeja(HashMap<Integer, Node> graph, Config config) {
@@ -30,9 +32,14 @@ public class Jabeja {
     this.numberOfSwaps = 0;
     this.config = config;
     this.T = config.getTemperature();
+    this.rnd = new Random();
   }
 
+// ----------------------------------------------
+public double acceptance_probability(double oldCost, double newCost){
+    return Math.exp( (oldCost - newCost)/T);
 
+}
   //-------------------------------------------------------------------
   public void startJabeja() throws IOException {
     for (round = 0; round < config.getRounds(); round++) {
@@ -52,11 +59,31 @@ public class Jabeja {
    */
   private void saCoolDown(){
     // TODO for second task
-    if (T > 1)
+    //task1
+    if (T > 1){
       T -= config.getDelta();
-    if (T < 1)
+    }
+    if (T < 1){
       T = 1;
+    }
+
+    //restart annealing
+    if (T == 1 && round == 400)
+      T = config.getTemperature();
+
+
+    //task2
+    // float annealing_alpha = 0.8f;
+    // float Tmin= 0.000001f;
+    // if (T > Tmin){
+    //   T = T*annealing_alpha;
+    // }
+    // else {
+    //   T = Tmin;
+    // }
+
   }
+
 
   /**
    * Sample and swap algorith at node p
@@ -86,14 +113,14 @@ public class Jabeja {
     // TODO
     if (partner != null){
       int col = nodep.getColor();
-      // ??
+
       if (col != partner.getColor())
         numberOfSwaps+=1;
       nodep.setColor(partner.getColor());
       partner.setColor(col);
 
-
     }
+    //saCoolDown(); how it should be for task1 ?
   }
 
   public Node findPartner(int nodeId, Integer[] nodes){
@@ -121,11 +148,20 @@ public class Jabeja {
       dqp = getDegree(nodeq, nodep.getColor());
       newV = Math.pow(dpq, a) + Math.pow(dqp, a);
 
-
+      //Task1
       if ((newV* this.T > oldV)&& (newV > highestBenefit)){
         bestPartner = nodeq;
         highestBenefit = newV;
       }
+
+      //Task2. Put acceptance probability here ?
+      // double ap = acceptance_probability(oldV, newV);
+      // if (ap > rnd.nextDouble()){
+      //   bestPartner = nodeq;
+      //   highestBenefit = newV;
+      // }
+
+
     }
 
     return bestPartner;
